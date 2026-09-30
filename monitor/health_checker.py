@@ -1,6 +1,7 @@
 import httpx
 import time
 from datetime import datetime
+from database import init_db, save_result
 
 
 SERVICES = [
@@ -125,6 +126,7 @@ def display_results(results):
 
 
 def monitor():
+    init_db()
 
     print("CloudOps Monitor started.")
     print(f"Checking services every {CHECK_INTERVAL} seconds.")
@@ -135,6 +137,9 @@ def monitor():
         while True:
 
             results = check_all_services()
+
+            for result in results:
+                save_result(result)
 
             display_results(results)
 
