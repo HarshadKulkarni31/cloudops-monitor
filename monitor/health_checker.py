@@ -14,12 +14,12 @@ SERVICES = [
     },
     {
         "name": "Product API",
-        "url": "http://localhost:8003/health"
+        "url": "http://43.205.215.11:8000/health"
     }
 ]
 
 CHECK_INTERVAL = 30
-DEGRADED_THRESHOLD = 3000
+DEGRADED_THRESHOLD = 1000
 
 
 def check_service(service):
