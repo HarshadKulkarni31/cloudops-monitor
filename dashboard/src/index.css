@@ -444,3 +444,39 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.chart-section {
+  max-width: 1250px;
+  margin-top: 40px;
+  padding-bottom: 40px;
+}
+
+.chart-card {
+  padding: 20px;
+
+  background: #0f172a;
+
+  border: 1px solid #1e293b;
+
+  border-radius: 15px;
+}
+
+.uptime {
+  margin-top: 12px;
+  padding: 12px;
+  background: #080d18;
+  border-radius: 9px;
+}
+
+.uptime span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.uptime strong {
+  display: block;
+  margin-top: 4px;
+  color: #4ade80;
+  font-size: 16px;
+}

@@ -106,3 +106,47 @@ def get_services():
         }
         for row in rows
     ]
+
+@app.get("/uptime")
+def get_uptime():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            service,
+            COUNT(*) AS total_checks,
+            SUM(CASE WHEN status = 'healthy' THEN 1 ELSE 0 END) AS healthy_checks,
+            SUM(CASE WHEN status = 'degraded' THEN 1 ELSE 0 END) AS degraded_checks,
+            SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) AS down_checks
+        FROM health_checks
+        GROUP BY service
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    result = []
+
+    for row in rows:
+        service = row[0]
+        total = row[1]
+        healthy = row[2] or 0
+        degraded = row[3] or 0
+        down = row[4] or 0
+
+        uptime = round(
+            ((healthy + degraded) / total) * 100,
+            2
+        ) if total > 0 else 0
+
+        result.append({
+            "service": service,
+            "total_checks": total,
+            "healthy_checks": healthy,
+            "degraded_checks": degraded,
+            "down_checks": down,
+            "uptime_percentage": uptime
+        })
+
+    return result
