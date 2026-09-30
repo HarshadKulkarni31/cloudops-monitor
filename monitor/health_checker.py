@@ -6,11 +6,11 @@ from datetime import datetime
 SERVICES = [
     {
         "name": "Payment API",
-        "url": "http://localhost:8001/health"
+        "url": "http://3.109.152.73:8000/health"
     },
     {
         "name": "Auth API",
-        "url": "http://localhost:8002/health"
+        "url": "http://43.205.115.230:8000/health"
     },
     {
         "name": "Product API",
