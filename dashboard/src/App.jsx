@@ -19,7 +19,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const API_URL = "http://localhost:8004";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8004";
 
 function App() {
   const [services, setServices] = useState([]);
