@@ -5,7 +5,7 @@ from database import init_db, save_result , get_connection
 
 
 CHECK_INTERVAL = 30
-DEGRADED_THRESHOLD = 1000
+DEGRADED_THRESHOLD = 2000
 
 
 def check_service(service):

@@ -84,6 +84,45 @@ def get_services():
 
     cursor.execute("""
         SELECT
+            s.id,
+            s.name,
+            s.url,
+            s.enabled,
+            h.status,
+            h.http_status,
+            h.response_time_ms,
+            h.timestamp
+        FROM services s
+        LEFT JOIN health_checks h
+            ON h.id = (
+                SELECT MAX(h2.id)
+                FROM health_checks h2
+                WHERE h2.service = s.name
+            )
+        ORDER BY s.id
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [
+        {
+            "id": row[0],
+            "service": row[1],
+            "url": row[2],
+            "enabled": bool(row[3]),
+            "status": row[4] or "unknown",
+            "http_status": row[5],
+            "response_time_ms": row[6],
+            "timestamp": row[7]
+        }
+        for row in rows
+    ]
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
             service,
             status,
             http_status,
@@ -228,4 +267,43 @@ def delete_service(service_id: int):
     return {
         "message": "Service deleted successfully",
         "service": service[0]
+    }
+
+@app.patch("/services/{service_id}/toggle")
+def toggle_service(service_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT name, enabled FROM services WHERE id = ?",
+        (service_id,)
+    )
+
+    service = cursor.fetchone()
+
+    if service is None:
+        conn.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Service not found"
+        )
+
+    new_status = 0 if service[1] == 1 else 1
+
+    cursor.execute(
+        """
+        UPDATE services
+        SET enabled = ?
+        WHERE id = ?
+        """,
+        (new_status, service_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "message": "Service status updated",
+        "service": service[0],
+        "enabled": bool(new_status)
     }
