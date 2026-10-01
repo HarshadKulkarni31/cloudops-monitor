@@ -35,6 +35,17 @@ def init_db():
         )
     """)
 
+    # Incident history
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS incidents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            service TEXT NOT NULL,
+            previous_status TEXT,
+            current_status TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -88,3 +99,31 @@ def get_recent_results(limit=100):
     conn.close()
 
     return rows
+
+
+def save_incident(
+    service,
+    previous_status,
+    current_status,
+    timestamp
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO incidents (
+            service,
+            previous_status,
+            current_status,
+            timestamp
+        )
+        VALUES (?, ?, ?, ?)
+    """, (
+        service,
+        previous_status,
+        current_status,
+        timestamp
+    ))
+
+    conn.commit()
+    conn.close()
