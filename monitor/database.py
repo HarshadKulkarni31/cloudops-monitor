@@ -1,7 +1,7 @@
+import os
 import sqlite3
 
-DB_NAME = "monitoring.db"
-
+DB_NAME = os.getenv("DB_PATH", "monitoring.db")
 
 def get_connection():
     return sqlite3.connect(DB_NAME)
