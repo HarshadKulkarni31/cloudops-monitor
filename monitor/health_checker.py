@@ -1,23 +1,8 @@
 import httpx
 import time
 from datetime import datetime
-from database import init_db, save_result
+from database import init_db, save_result , get_connection
 
-
-SERVICES = [
-    {
-        "name": "Payment API",
-        "url": "http://3.109.152.73:8000/health"
-    },
-    {
-        "name": "Auth API",
-        "url": "http://43.205.115.230:8000/health"
-    },
-    {
-        "name": "Product API",
-        "url": "http://43.205.215.11:8000/health"
-    }
-]
 
 CHECK_INTERVAL = 30
 DEGRADED_THRESHOLD = 1000
@@ -79,12 +64,12 @@ def check_service(service):
             "error": str(error)
         }
 
-
 def check_all_services():
+    services = get_services()
 
     results = []
 
-    for service in SERVICES:
+    for service in services:
         result = check_service(service)
         results.append(result)
 
@@ -148,6 +133,29 @@ def monitor():
     except KeyboardInterrupt:
 
         print("\nCloudOps Monitor stopped.")
+
+def get_services():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT name, url
+        FROM services
+        WHERE enabled = 1
+        ORDER BY id
+    """)
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return [
+        {
+            "name": row[0],
+            "url": row[1]
+        }
+        for row in rows
+    ]
 
 
 if __name__ == "__main__":

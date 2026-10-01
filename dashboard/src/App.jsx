@@ -26,6 +26,11 @@ function App() {
   const [checks, setChecks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uptime, setUptime] = useState([]);
+  const [showAddService, setShowAddService] = useState(false);
+  const [serviceName, setServiceName] = useState("");
+  const [serviceUrl, setServiceUrl] = useState("");
+  const [addingService, setAddingService] = useState(false);
+  const [serviceError, setServiceError] = useState("");
 
   // Fetch monitoring data
   const fetchData = useCallback(async () => {
@@ -54,6 +59,51 @@ function App() {
       setLoading(false);
     }
   }, []);
+
+  const addService = async (event) => {
+    event.preventDefault();
+
+    if (!serviceName.trim() || !serviceUrl.trim()) {
+      setServiceError("Please enter both service name and health URL.");
+      return;
+    }
+
+    setAddingService(true);
+    setServiceError("");
+
+    try {
+      const response = await fetch(`${API_URL}/services`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: serviceName.trim(),
+          url: serviceUrl.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Failed to add service");
+      }
+
+      // Clear form
+      setServiceName("");
+      setServiceUrl("");
+
+      // Close form
+      setShowAddService(false);
+
+      // Immediately refresh dashboard
+      fetchData();
+    } catch (error) {
+      setServiceError(error.message);
+    } finally {
+      setAddingService(false);
+    }
+  };
 
   // Initial fetch + automatic refresh every 10 seconds
   useEffect(() => {
@@ -188,13 +238,81 @@ function App() {
             <p>Real-time status of your cloud services</p>
           </div>
 
-          {/* Manual Refresh */}
+          <div className="header-actions">
+            <button
+              className="add-service-button"
+              onClick={() => {
+                setShowAddService(!showAddService);
+                setServiceError("");
+              }}
+            >
+              + Add Service
+            </button>
 
-          <button onClick={fetchData}>
-            <RefreshCw size={16} />
-            Refresh
-          </button>
+            <button onClick={fetchData}>
+              <RefreshCw size={16} />
+              Refresh
+            </button>
+          </div>
         </div>
+        {showAddService && (
+          <form className="add-service-form" onSubmit={addService}>
+            <div className="form-header">
+              <div>
+                <h3>Add New Service</h3>
+                <p>Register a health endpoint to monitor</p>
+              </div>
+
+              <button
+                type="button"
+                className="close-button"
+                onClick={() => setShowAddService(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Service Name</label>
+
+                <input
+                  type="text"
+                  placeholder="e.g. Order API"
+                  value={serviceName}
+                  onChange={(event) => setServiceName(event.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Health Check URL</label>
+
+                <input
+                  type="url"
+                  placeholder="https://example.com/health"
+                  value={serviceUrl}
+                  onChange={(event) => setServiceUrl(event.target.value)}
+                />
+              </div>
+            </div>
+
+            {serviceError && <div className="form-error">{serviceError}</div>}
+
+            <div className="form-actions">
+              <button type="button" onClick={() => setShowAddService(false)}>
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="submit-button"
+                disabled={addingService}
+              >
+                {addingService ? "Adding..." : "Add Service"}
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Loading */}
 

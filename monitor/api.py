@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 
@@ -6,6 +8,9 @@ app = FastAPI(
     title="CloudOps Monitoring API",
     version="1.0.0"
 )
+class ServiceCreate(BaseModel):
+    name: str
+    url: str
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -150,3 +155,77 @@ def get_uptime():
         })
 
     return result
+
+@app.post("/services")
+def add_service(service: ServiceCreate):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO services (
+                name,
+                url,
+                enabled,
+                created_at
+            )
+            VALUES (?, ?, ?, ?)
+        """, (
+            service.name,
+            service.url,
+            1,
+            datetime.now().isoformat()
+        ))
+
+        conn.commit()
+
+        service_id = cursor.lastrowid
+
+    except sqlite3.IntegrityError:
+        conn.close()
+
+        raise HTTPException(
+            status_code=409,
+            detail="A service with this name already exists"
+        )
+
+    conn.close()
+
+    return {
+        "message": "Service added successfully",
+        "id": service_id,
+        "name": service.name,
+        "url": service.url
+    }
+@app.delete("/services/{service_id}")
+def delete_service(service_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT name FROM services WHERE id = ?",
+        (service_id,)
+    )
+
+    service = cursor.fetchone()
+
+    if service is None:
+        conn.close()
+
+        raise HTTPException(
+            status_code=404,
+            detail="Service not found"
+        )
+
+    cursor.execute(
+        "DELETE FROM services WHERE id = ?",
+        (service_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "message": "Service deleted successfully",
+        "service": service[0]
+    }

@@ -3,11 +3,15 @@ import sqlite3
 DB_NAME = "monitoring.db"
 
 
-def init_db():
-    conn = sqlite3.connect(DB_NAME)
+def get_connection():
+    return sqlite3.connect(DB_NAME)
 
+
+def init_db():
+    conn = get_connection()
     cursor = conn.cursor()
 
+    # Health check history
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS health_checks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,13 +24,23 @@ def init_db():
         )
     """)
 
+    # Registered services
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS services (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            url TEXT NOT NULL,
+            enabled INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL
+        )
+    """)
+
     conn.commit()
     conn.close()
 
 
 def save_result(result):
-    conn = sqlite3.connect(DB_NAME)
-
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -53,8 +67,7 @@ def save_result(result):
 
 
 def get_recent_results(limit=100):
-    conn = sqlite3.connect(DB_NAME)
-
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
