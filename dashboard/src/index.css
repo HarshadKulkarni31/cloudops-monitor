@@ -609,3 +609,37 @@ button {
     align-items: stretch;
   }
 }
+
+.service-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.service-actions button {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  border: 1px solid #1e293b;
+}
+
+.toggle-button {
+  background: #0f172a;
+  color: #94a3b8;
+}
+
+.toggle-button:hover {
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.delete-button {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+}
+
+.delete-button:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444 !important;
+}

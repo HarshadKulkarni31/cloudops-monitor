@@ -105,6 +105,46 @@ function App() {
     }
   };
 
+  const toggleService = async (serviceId) => {
+    try {
+      const response = await fetch(`${API_URL}/services/${serviceId}/toggle`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update service");
+      }
+
+      await fetchData();
+    } catch (error) {
+      console.error("Toggle service error:", error);
+    }
+  };
+
+  const deleteService = async (serviceId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this service?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/services/${serviceId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete service");
+      }
+
+      await fetchData();
+    } catch (error) {
+      console.error("Delete service error:", error);
+    }
+  };
+
   // Initial fetch + automatic refresh every 10 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -363,6 +403,22 @@ function App() {
 
                       <span>{service.status}</span>
                     </div>
+                  </div>
+
+                  <div className="service-actions">
+                    <button
+                      className="toggle-button"
+                      onClick={() => toggleService(service.id)}
+                    >
+                      {service.enabled ? "Disable" : "Enable"}
+                    </button>
+
+                    <button
+                      className="delete-button"
+                      onClick={() => deleteService(service.id)}
+                    >
+                      Delete
+                    </button>
                   </div>
 
                   {/* Metrics */}
